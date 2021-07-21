@@ -1,0 +1,95 @@
+################################### BASIC PYSPARK COMMANDS ########################################
+######## Installation ############
+# latest instrutions : https://spark.apache.org/docs/latest/api/python/getting_started/install.html
+
+####### Intialisation ##########
+# Create SparkSession
+	from pyspark.sql import SparkSession
+	spark = SparkSession.builder.appName('<app name>').getorCreate() 
+
+
+
+####### DataFrames ############
+# Laoding dataFrames from file
+	df = spark.read.json('<filename>',schema = None) : json file
+	df = spark.read.csv('<filename>',inferschema = True,header = False) : csv file
+
+
+# DataFrame methods
+	df.show() : show dataframe contents
+	df.collect() : returns list of Row objects
+	df.describe().show() : same as pandas describe
+	df.count() : get total number of rows
+	df.columns : same as pandas
+	df.printSchema() : print dataframe schema
+	df.select(<list of cols>) : returns df of cols
+	df.head(n) : select n top rows
+	df.withColumn(<new_col_name>,<new col values>) : creates new db with new colmn
+	df.withColumnRenamed(<old col name>,<new_Col_name>) : renames columns	
+	df.filter() : use direct sql queries or pandas based filtering	
+	df.groupBy('<categorical columns name>') : group by same as sql
+	df.agg({'<col_name>':'<agg fn>',...}) : returns aggregated df (can also be used on group)	
+	df.select(new_col.alias('<new col name>')) : similar to sql select as	
+	df.orderBy('Col_name') : sort in asc 
+	df.orderBy(df['<col name>'].desc()) : sort in DESC
+
+# Missing values
+	1) Drop values
+	df.na.drop(args) : drops values by args
+		args :  1) subset = <list of cols> : row dropped in any col i list has null
+			2) how = 'any'/'all' : drop if any/all cols are missing
+			3) thresh = n : drop if less than n cols are non missing
+	2) Fill values
+	df.na.fill(value,subset=[<list of cols to fill with value>]) : fill missing with value
+
+# Functions
+	from pyspark.sql.functions import <func_name>
+	# numerical funcs
+	mean,stddev,format_number,min,max,count
+
+	# Date funcs
+	dayofmonth,hour,dayofyear,month,year,weekofyear,date_format
+	
+
+	Usage : 
+		df.select(fn('<col name>').alias('<new name>'))
+	Eg : 
+		df.select(format_number(stddev('abd'),2)) : format numerical output to 2 decimals
+
+# Row methods
+	row = df.filter(<cond>).collect()[0]
+	row.asDict() : returns dictionary of rows
+
+# Aggregation functions
+	mean : returns mean of numerical cols
+	sum : sum of numerical cols	
+	max : max of numerocal cols
+	min : min of numerical cols
+	count : count number or rows in each category
+
+
+# Using SQL queries
+	df.createOrReplaceTempView('<view_name>') : creates temp sql db
+	results = spark.sql('SELECT * FROM view_nanme')	: resturns df of results
+	results.show() : show results
+
+# Filter Data
+	df.filter() : use direct sql queries or pandas based filtering
+	Examples : 
+	1) Using SQL Queries
+		df.filter("abc < 10").show() : filter using single column
+		df.filter("abc < 10 AND def > 20") : (same as sql WHERE/HAVING clause) filtering multiple
+	2) Filter using python syntax
+		df.filter(df["abc"] < 10).show() : single column filter
+		df.filter( (df["abc"] < 10) & (df['def'] > 20) )
+
+	# Filterig ops
+	& : AND
+	| : or
+	~ : not
+	rest same as other common 
+
+####### RDDS ##########
+
+pyspark.SparkContext.paralellize : to create rdd
+pyspark.SparkContext.collect() : to view  data in rdd
