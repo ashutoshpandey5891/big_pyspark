@@ -5,7 +5,7 @@
 ####### Intialisation ##########
 # Create SparkSession
 	from pyspark.sql import SparkSession
-	spark = SparkSession.builder.appName('<app name>').getorCreate() 
+	spark = SparkSession.builder.appName('<app name>').getOrCreate() 
 
 
 
@@ -13,7 +13,7 @@
 # Laoding dataFrames from file
 	df = spark.read.json('<filename>',schema = None) : json file
 	df = spark.read.csv('<filename>',inferschema = True,header = False) : csv file
-
+	df = spark.read.format(<data fromat>)
 
 # DataFrame methods
 	df.show() : show dataframe contents
@@ -33,6 +33,14 @@
 	df.orderBy('Col_name') : sort in asc 
 	df.orderBy(df['<col name>'].desc()) : sort in DESC
 
+# Pydpark dataFrame conversion
+	# numpy
+	np.array(df.select('*').collect())  
+	
+	# Pandas Dataframe
+	df.toPandas()    
+
+
 # Missing values
 	1) Drop values
 	df.na.drop(args) : drops values by args
@@ -42,6 +50,10 @@
 	2) Fill values
 	df.na.fill(value,subset=[<list of cols to fill with value>]) : fill missing with value
 
+	# get count of missing values
+	from pyspark.sql.functions import when,count,isnan
+	df.select([count(when(isnan(c) | df[c].isNull(),c)) for c in df.columns]).show()
+
 # Functions
 	from pyspark.sql.functions import <func_name>
 	# numerical funcs
@@ -49,6 +61,7 @@
 
 	# Date funcs
 	dayofmonth,hour,dayofyear,month,year,weekofyear,date_format
+	
 	
 
 	Usage : 
@@ -88,6 +101,26 @@
 	| : or
 	~ : not
 	rest same as other common 
+
+# Data Preprocessing
+ 	# Data Splitting
+ 	train_data,test_data = data.randomSplit([0.7,0.3])
+
+	# convert Data to DenseVectors (Default data format used in spark mlib)
+	from pyspark.ml.linalg import Vectors
+	from pysaprk.ml.feature import VectorAssembler
+
+	assembler = VectorAssembler(inputCols=<list of input cols>,outputCol='features')
+	output = assembler.transform(data_df)
+	all_data = data.select(['fetures',<label col>])
+
+####### Pspark MLlib #######
+# Linear Regression
+	from pyspark.ml.regression import LinearRegression
+	lr = LinearRegression(featuresCol = <features col>,labelCol=<labels column>,predictionCol = <prediction col>
+				regParam=<float>,elasticNetParam=<float>)
+	model = lr.fit(data)
+	modelSummary = trainedModel.summary
 
 ####### RDDS ##########
 
